@@ -106,17 +106,6 @@ FindBmpInCache (
   return NULL;
 }
 
-/**
-  Add a BMP to the cache.
-  
-  @param[in]  BmpPointer     Pointer to the BMP image data.
-  @param[in]  BltBuffer      Decoded BLT buffer.
-  @param[in]  BltBufferSize  Size of BLT buffer.
-  @param[in]  Width          Image width.
-  @param[in]  Height         Image height.
-  
-  @return TRUE if added successfully, FALSE if cache is full.
-**/
 STATIC
 BOOLEAN
 AddBmpToCache (
