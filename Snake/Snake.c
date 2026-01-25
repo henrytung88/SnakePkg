@@ -13,7 +13,6 @@
 
 #include "Assets/Logo.bmp.h"
 #include "Graphics.h"
-#include "Uefi/UefiBaseType.h"
 
 EFI_STATUS
 EFIAPI
