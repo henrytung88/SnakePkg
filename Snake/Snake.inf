@@ -18,6 +18,7 @@
 
 [Protocols]
   gEfiGraphicsOutputProtocolGuid ## CONSUMES # For graphics
+  gEfiLoadedImageProtocolGuid ## CONSUMES
 
 [LibraryClasses]
   UefiApplicationEntryPoint

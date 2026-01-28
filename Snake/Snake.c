@@ -12,6 +12,8 @@
 #include <Library/DebugLib.h>
 #include <Library/UefiBootServicesTableLib.h>
 
+#include <Protocol/LoadedImage.h>
+
 #include "Assets/Logo.bmp.h"
 #include "Graphics.h"
 
@@ -22,9 +24,27 @@ UefiMain(
   IN EFI_SYSTEM_TABLE  *SystemTable
 )
 {
-  BOOLEAN Success;
+  EFI_STATUS                  Status;
+  EFI_LOADED_IMAGE_PROTOCOL   *LoadedImage;
+  BOOLEAN                     Success;
 
-  Print(L"Initializing...\n");
+  Status = gBS->LocateProtocol(
+    &gEfiLoadedImageProtocolGuid,
+    NULL,
+    (VOID **)&LoadedImage
+  );
+
+  if (EFI_ERROR(Status)) {
+    ASSERT(EFI_ERROR(Status));
+    return EFI_ABORTED;
+  }
+
+  Print(L"LoadedImage->ImageBase: 0x%p\n", LoadedImage->ImageBase);
+
+#ifdef DEBUG
+    Print(L"CpuBreakpoint()\n");
+    CpuBreakpoint();
+#endif
 
   Success = InitGfx();
   if (!Success) {
