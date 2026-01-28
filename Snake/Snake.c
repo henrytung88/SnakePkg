@@ -42,7 +42,7 @@ UefiMain(
   Print(L"Gop->Mode->Mode: %d\n", gGop->Mode->Mode);
   Print(L"Info->HorizontalResolution: %d\n", gGopInfo->HorizontalResolution);
   Print(L"Info->VerticalResolution: %d\n", gGopInfo->VerticalResolution);
-  Print(L"\nNo snake game yet!\n");
+  
 
   Success = DrawBmpToBackbuffer(
     LogoBmp,
