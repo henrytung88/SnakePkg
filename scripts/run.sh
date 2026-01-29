@@ -75,6 +75,8 @@ QEMU_DEBUG="-chardev stdio,id=char0,logfile=../../Build/SnakePkg/DEBUG_GCC5/${AR
 
 if [ "$BUILD_TARGET" = "DEBUG" ]; then
     QEMU_ACCEL="-accel tcg"
+else
+    QEMU_DEBUG=""
 fi
 
 echo "Starting QEMU ($QEMU_ARCH)..."
@@ -93,5 +95,5 @@ else
         -machine q35 \
         -bios "$OVMF_CODE" \
         -drive format=raw,file=fat:rw:$ESP_DIR \
-        $QEMU_COMMON $QEMU_ACCEL
+        $QEMU_COMMON $QEMU_ACCEL $QEMU_DEBUG
 fi
