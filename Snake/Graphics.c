@@ -49,8 +49,14 @@ InitGfx(
   }
 
   gGopInfo = gGop->Mode->Info;
-  gBackBufferLen = gGopInfo->HorizontalResolution * gGopInfo->VerticalResolution;
+  gBackBufferLen =
+    gGopInfo->HorizontalResolution * gGopInfo->VerticalResolution * sizeof(EFI_GRAPHICS_OUTPUT_BLT_PIXEL);
   gBackBuffer = AllocatePool(gBackBufferLen);
+
+  if (!gBackBuffer) {
+    Print(L"%a: AllocatePool returned NULL\n", __FUNCTION__);
+  }
+
   mBmpCacheCount = 0;
 
   ZeroMem(gBackBuffer, gBackBufferLen);
@@ -74,6 +80,7 @@ DrawRectangleToBackbuffer(
   UINTN                           x;
   UINTN                           ScreenX;
   UINTN                           ScreenY;
+  UINTN                           Index;
 
   Pixel = (EFI_GRAPHICS_OUTPUT_BLT_PIXEL){
     .Blue = Blue,
@@ -90,7 +97,10 @@ DrawRectangleToBackbuffer(
       ASSERT(ScreenX < gGopInfo->HorizontalResolution && 
         ScreenY < gGopInfo->VerticalResolution);
 
-      gBackBuffer[ScreenY * gGopInfo->HorizontalResolution + ScreenX] = Pixel;
+      Index = ScreenY * gGopInfo->HorizontalResolution + ScreenX;
+      ASSERT(Index < gBackBufferLen);
+
+      gBackBuffer[Index] = Pixel;
     }
   }
 }
