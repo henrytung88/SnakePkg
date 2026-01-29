@@ -85,12 +85,7 @@ def auto_load_symbols(debugger, command, result, internal_dict):
 
 def __lldb_init_module(debugger, internal_dict):
     debugger.HandleCommand(
-        'command script add -f lldb_uefi_helper.load_uefi_symbols load_uefi_symbols'
-    )
-    debugger.HandleCommand(
         'command script add -f lldb_uefi_helper.auto_load_symbols auto_load_symbols'
     )
-    print("UEFI symbol loader ready")
-    print("Commands:")
-    print("  load_uefi_symbols <address>              - Manual load")
-    print("  auto_load_symbols [log_file] [timeout]   - Auto-detect from log")
+    print("Automatically loading symbols...")
+    wait_and_load_symbols(debugger, os.path.abspath(__file__))
