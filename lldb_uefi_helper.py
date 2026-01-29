@@ -59,6 +59,8 @@ def wait_and_load_symbols(debugger, log_file, timeout):
         if image_base:
             print(f"Detected ImageBase: {image_base}")
             return load_symbols_at_base(debugger, image_base)
+
+    print("Missed ImageHandle log")
     return False
 
 def load_uefi_symbols(debugger, command, result, internal_dict):
@@ -81,11 +83,9 @@ def auto_load_symbols(debugger, command, result, internal_dict):
         return
 
     print("Running watcher in separate thread...")
-    wait_and_load_symbols(debugger, log_file, timeout)
+    threading.Thread(target=wait_and_load_symbols, args=(debugger, log_file, timeout)).start()
 
 def __lldb_init_module(debugger, internal_dict):
     debugger.HandleCommand(
         'command script add -f lldb_uefi_helper.auto_load_symbols auto_load_symbols'
     )
-    print("Automatically loading symbols...")
-    wait_and_load_symbols(debugger, os.path.abspath(__file__))

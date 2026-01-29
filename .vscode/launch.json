@@ -13,11 +13,11 @@
             ],
             "preRunCommands": [
                 "command script import \"${workspaceFolder}/lldb_uefi_helper.py\"",
-                "auto_load_symbols ${workspaceFolder}/../Build/SnakePkg/DEBUG_GCC5/X64/debug.log 10"
+                "continue",
             ],
-            "sourceMap": {
-                "${workspaceFolder}/../": "${workspaceFolder}/../"
-            }
+            "postRunCommands": [
+                "auto_load_symbols ${workspaceFolder}/../Build/SnakePkg/DEBUG_GCC5/X64/debug.log 10"
+            ]
         }
     ]
 }
