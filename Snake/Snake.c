@@ -45,7 +45,6 @@ UefiMain(
     NULL,
     EFI_OPEN_PROTOCOL_GET_PROTOCOL
   );
-
   ASSERT_EFI_ERROR(Status);
 
   Status = gBS->OpenProtocol (
@@ -56,7 +55,6 @@ UefiMain(
     NULL,
     EFI_OPEN_PROTOCOL_GET_PROTOCOL
   );
-
   ASSERT_EFI_ERROR(Status);
 
   Print(L"LoadedImage->ImageBase: 0x%p\n", LoadedImage->ImageBase);
