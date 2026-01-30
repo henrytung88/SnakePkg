@@ -6,7 +6,22 @@ BUILD_TARGET=${2:-DEBUG}
 case $ARCH_TARGET in
     X64|IA32) ;;
     *)
-        echo "Error: Invalid architecture '$ARCH_TARGET'"
+        echo "Error: Invalid or unsupported architecture '$ARCH_TARGET'"
+        exit 1
+        ;;
+esac
+
+case $BUILD_TARGET in
+    RELEASE) ;;
+    DEBUG)
+        if [ "$BUILD_TARGET" = "DEBUG" ] && [ "$ARCH_TARGET" = "IA32" ]; then
+            echo "IA32 debugging isn't supported"
+            echo "Instead, you can opt to target DEBUG via: ./build.sh IA32 DEBUG"
+            exit 1
+        fi
+        ;;
+    *)
+        echo "Error: Invalid build target '$BUILD_TARGET'"
         exit 1
         ;;
 esac
