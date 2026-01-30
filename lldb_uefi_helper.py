@@ -75,7 +75,7 @@ def load_uefi_symbols(debugger, command, result, internal_dict):
 def auto_load_symbols(debugger, command, result, internal_dict):
     args = command.split()
     log_file = args[0] if len(args) > 0 else None
-    timeout = int(args[1]) if len(args) > 1 else 30
+    timeout = int(args[1]) if len(args) > 1 else 10
 
     if not log_file:
         print("Cannot find debug.log")
