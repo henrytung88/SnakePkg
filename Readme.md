@@ -81,7 +81,18 @@ Build/SnakePkg/DEBUG_GCC/X64/Snake.efi
 
 ```bash
 ./run.sh DEBUG X64 # Only X64 builds are supported for debugging
+```
+
+In another shell instance:
+
+```bash
 lldb
+
+# Once inside LLDB:
+(lldb) gdb-remote localhost:1234 # QEMU gdb port
+(lldb) command script import "$<SNAKEPKG_PATH>/lldb_uefi_helper.py"
+(lldb) continue
+(lldb) auto_load_symbols <SNAKEPKG_PATH>/../Build/SnakePkg/DEBUG_GCC5/X64/debug.log # Will auto-scan for the `debug.log` file!
 ```
 
 #### With VS Code
