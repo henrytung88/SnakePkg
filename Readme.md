@@ -90,7 +90,7 @@ lldb
 
 # Once inside LLDB:
 (lldb) gdb-remote localhost:1234 # QEMU gdb port
-(lldb) command script import "$<SNAKEPKG_PATH>/lldb_uefi_helper.py"
+(lldb) command script import "<SNAKEPKG_PATH>/lldb_uefi_helper.py"
 (lldb) continue
 (lldb) auto_load_symbols <SNAKEPKG_PATH>/../Build/SnakePkg/DEBUG_GCC5/X64/debug.log # Will auto-scan for the `debug.log` file!
 ```
