@@ -10,12 +10,20 @@
 #include <Library/BaseMemoryLib.h>
 #include <Library/MemoryAllocationLib.h>
 
+#include <Protocol/LoadedImage.h>
+#include <Protocol/HiiImage.h>
+#include <Protocol/HiiDatabase.h>
+
 #include "Graphics.h"
 
-EFI_GRAPHICS_OUTPUT_PROTOCOL            *gGop           = NULL;
-EFI_GRAPHICS_OUTPUT_MODE_INFORMATION    *gGopInfo       = NULL;
-EFI_GRAPHICS_OUTPUT_BLT_PIXEL           *gBackBuffer    = NULL;
-UINTN                                   gBackBufferLen;
+EFI_GRAPHICS_OUTPUT_PROTOCOL            *gGop;
+EFI_GRAPHICS_OUTPUT_MODE_INFORMATION    *gGopInfo;
+STATIC EFI_GRAPHICS_OUTPUT_BLT_PIXEL    *gBackBuffer;
+EFI_HII_IMAGE_PROTOCOL                  *gHiiImage;
+EFI_HII_HANDLE                          gHiiHandle;
+STATIC UINTN                            gBackBufferLen;
+UINTN                                   gMiddleScreenX;
+UINTN                                   gMiddleScreenY;
 
 BOOLEAN
 InitGfx(
@@ -23,6 +31,32 @@ InitGfx(
 )
 {
   EFI_STATUS Status;
+  EFI_HII_PACKAGE_LIST_HEADER   *PackageListHeader;
+  EFI_HII_DATABASE_PROTOCOL     *HiiDatabase;
+
+  Status = gBS->OpenProtocol (
+    gImageHandle,
+    &gEfiHiiPackageListProtocolGuid,
+    (VOID **)&PackageListHeader,
+    gImageHandle,
+    NULL,
+    EFI_OPEN_PROTOCOL_GET_PROTOCOL
+  );
+  ASSERT_EFI_ERROR(Status);
+
+  Status = gBS->LocateProtocol(
+    &gEfiHiiImageProtocolGuid,
+    NULL,
+    (VOID **)&gHiiImage
+  );
+  ASSERT_EFI_ERROR(Status);
+
+  Status = gBS->LocateProtocol(
+    &gEfiHiiDatabaseProtocolGuid,
+    NULL,
+    (VOID **)&HiiDatabase
+  );
+  ASSERT_EFI_ERROR(Status);
 
   Status = gBS->LocateProtocol(
     &gEfiGraphicsOutputProtocolGuid,
@@ -31,14 +65,21 @@ InitGfx(
   );
   ASSERT_EFI_ERROR(Status);
 
+  Status = HiiDatabase->NewPackageList(
+    HiiDatabase,
+    PackageListHeader,
+    NULL,
+    &gHiiHandle
+  );
+  ASSERT_EFI_ERROR(Status);
+
   gGopInfo = gGop->Mode->Info;
   gBackBufferLen = gGopInfo->HorizontalResolution * gGopInfo->VerticalResolution * sizeof(EFI_GRAPHICS_OUTPUT_BLT_PIXEL);
   gBackBuffer = AllocateZeroPool(gBackBufferLen);
+  ASSERT(gBackBuffer);
 
-  if (!gBackBuffer) {
-    Print(L"%a: AllocatePool returned NULL\n", __FUNCTION__);
-    CpuBreakpoint();
-  }
+  gMiddleScreenX = (gGopInfo->HorizontalResolution / 2) - 1;
+  gMiddleScreenY = (gGopInfo->VerticalResolution / 2) - 1;
 
   return TRUE;
 }
@@ -85,7 +126,7 @@ DrawRectangleToBackbuffer(
 
 VOID
 DrawImageToBackbuffer(
-  IN EFI_IMAGE_INPUT     *Image,
+  IN EFI_IMAGE_INPUT    *Image,
   IN UINTN              DestinationX,
   IN UINTN              DestinationY,
   IN BOOLEAN            IsAnchorMiddle
@@ -151,6 +192,16 @@ DeinitGfx(
   VOID
 )
 {
+  EFI_STATUS    Status;
+
+  Status = gBS->CloseProtocol(
+    gImageHandle,
+    &gEfiHiiPackageListProtocolGuid,
+    gImageHandle,
+    NULL
+  );
+  ASSERT_EFI_ERROR(Status);
+
   FreePool(gBackBuffer);
   gBackBufferLen = 0;
 }

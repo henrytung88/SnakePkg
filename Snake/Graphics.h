@@ -19,6 +19,10 @@
 
 extern EFI_GRAPHICS_OUTPUT_PROTOCOL           *gGop;
 extern EFI_GRAPHICS_OUTPUT_MODE_INFORMATION   *gGopInfo;
+extern EFI_HII_IMAGE_PROTOCOL                 *gHiiImage;
+extern EFI_HII_HANDLE                         gHiiHandle;
+extern UINTN                                  gMiddleScreenX;
+extern UINTN                                  gMiddleScreenY;
 
 BOOLEAN
 InitGfx(
