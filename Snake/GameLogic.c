@@ -1,0 +1,324 @@
+#include <Uefi.h>
+
+#include <Library/BaseLib.h>
+#include <Library/UefiLib.h>
+#include <Library/DebugLib.h>
+#include <Library/UefiBootServicesTableLib.h>
+
+#include <Protocol/SimpleTextIn.h>
+
+#include "GameLogic.h"
+#include "Graphics.h"
+
+STATIC GRID_MATRIX    mGrid;
+STATIC SNAKE_STATE    mSnake;
+STATIC UINT32         mScore;
+
+// NOTE: In this function, we return the last ARROW pressed! 
+STATIC
+BOOLEAN
+QueryLastKeystroke(
+  EFI_INPUT_KEY   *Key
+)
+{
+  EFI_STATUS      Status;
+  UINTN           Index;
+  EFI_INPUT_KEY   CurrentKey;
+  BOOLEAN         ReadAnyKey = FALSE;
+
+  // We have to execute this twice to make sure we do get the key immediately, and not one snake update late
+  for (Index = 0; Index < 2; Index++) {
+    while (TRUE) {
+      Status = gST->ConIn->ReadKeyStroke(gST->ConIn, &CurrentKey);
+      if (EFI_ERROR(Status)) {
+        break;
+      }
+
+      // We do this so that we can continue reading the next key, otherwise it doesn't seem to read for some reason...
+      *Key = CurrentKey;
+      CurrentKey = (EFI_INPUT_KEY){};
+      ReadAnyKey = TRUE;
+
+      if (
+        Key->ScanCode == SCAN_LEFT ||
+        Key->ScanCode == SCAN_RIGHT ||
+        Key->ScanCode == SCAN_UP ||
+        Key->ScanCode == SCAN_DOWN
+      ) {
+        break;
+      }
+    }
+  }
+
+  return ReadAnyKey;
+}
+
+STATIC
+VOID
+DrawGrid(
+  VOID
+)
+{
+  UINTN   CellDisplaySize;
+  UINTN   GridSideDisplaySize;
+  UINTN   GridDrawStartAreaX;
+  UINTN   GridDrawStartAreaY;
+  UINTN   Index;
+
+  CellDisplaySize = (gGopInfo->HorizontalResolution * CELL_PERCENTAGE_SCREEN_OCCUPANCY) / 100;
+  GridSideDisplaySize = CellDisplaySize * CELLS_PER_AXIS;
+
+  ASSERT(GridSideDisplaySize < gGopInfo->HorizontalResolution
+    && GridSideDisplaySize < gGopInfo->VerticalResolution);
+
+  GridDrawStartAreaX = gMiddleScreenX - (GridSideDisplaySize / 2) - 1;
+  GridDrawStartAreaY = gMiddleScreenY - (GridSideDisplaySize / 2) - 1;
+
+  for (Index = 0; Index <= CELLS_PER_AXIS; Index++) {
+    // X axis borders
+    DrawRectangleToBackbuffer(
+      60, 60, 60,
+      GridSideDisplaySize, CELL_BORDER_SIZE,
+      GridDrawStartAreaX,
+      GridDrawStartAreaY + (Index * CellDisplaySize)
+    );
+
+    // Y axis borders
+    DrawRectangleToBackbuffer(
+      60, 60, 60,
+      CELL_BORDER_SIZE, GridSideDisplaySize,
+      GridDrawStartAreaX + (Index * CellDisplaySize),
+      GridDrawStartAreaY
+    );
+  }
+
+  for (Index = 0; Index < GRID_CELL_COUNT; Index++) {
+    if (!IS_SNAKE_CELL(mGrid[Index])) {
+      continue;
+    }
+
+    DrawRectangleToBackbuffer(
+      11, 125, 0,
+      CellDisplaySize - CELL_BORDER_SIZE,
+      CellDisplaySize - CELL_BORDER_SIZE,
+      GridDrawStartAreaX + CELL_BORDER_SIZE + (CellDisplaySize * CELL_X(Index)),
+      GridDrawStartAreaY + CELL_BORDER_SIZE + (CellDisplaySize * CELL_Y(Index))
+    );
+  }
+
+  // Highlight the snake's head
+  DrawRectangleToBackbuffer(
+    61, 175, 40,
+    CellDisplaySize - CELL_BORDER_SIZE,
+    CellDisplaySize - CELL_BORDER_SIZE,
+    GridDrawStartAreaX + CELL_BORDER_SIZE + (CellDisplaySize * CELL_X(mSnake.OccupiedCells[0])),
+    GridDrawStartAreaY + CELL_BORDER_SIZE + (CellDisplaySize * CELL_Y(mSnake.OccupiedCells[0]))
+  );
+
+  // And the snake's tail
+  DrawRectangleToBackbuffer(
+    168, 8, 0,
+    CellDisplaySize - CELL_BORDER_SIZE,
+    CellDisplaySize - CELL_BORDER_SIZE,
+    GridDrawStartAreaX + CELL_BORDER_SIZE + (CellDisplaySize * CELL_X(mSnake.OccupiedCells[mSnake.Length - 1])),
+    GridDrawStartAreaY + CELL_BORDER_SIZE + (CellDisplaySize * CELL_Y(mSnake.OccupiedCells[mSnake.Length - 1]))
+  );
+}
+
+STATIC
+VOID
+DrawScene(
+  VOID
+)
+{
+  EFI_STATUS        Status;
+  EFI_IMAGE_INPUT   Image;
+
+  gST->ConOut->SetCursorPosition(
+    gST->ConOut,
+    0,
+    0
+  );
+
+  Status = gHiiImage->GetImage(gHiiImage, gHiiHandle, IMAGE_TOKEN(IMG_LOGO), &Image);
+  ASSERT_EFI_ERROR(Status);
+
+  ClearBackbuffer();
+  DrawImageToBackbuffer(
+    &Image,
+    gMiddleScreenX, gMiddleScreenY,
+    TRUE
+  );
+  DrawGrid();
+}
+
+STATIC
+DIRECTION_VECTOR
+TranslateKeyToDirection(
+  EFI_INPUT_KEY   *Key
+)
+{
+  switch (Key->ScanCode) {
+    case SCAN_LEFT:
+      return RelativeLeft;
+    case SCAN_RIGHT:
+      return RelativeRight;
+    case SCAN_UP:
+      return RelativeUp;
+    case SCAN_DOWN:
+      return RelativeDown;
+    default:
+      return Undefined;
+  }
+}
+
+STATIC
+CONST EFI_STRING
+TranslateDirectionToString(
+  DIRECTION_VECTOR    Direction
+)
+{
+  switch (Direction) {
+    case RelativeLeft:
+      return L"RelativeLeft";
+    case RelativeRight:
+      return L"RelativeRight";
+    case RelativeUp:
+      return L"RelativeUp";
+    case RelativeDown:
+      return L"RelativeDown";
+    default:
+      return L"Undefined";
+  }
+}
+
+STATIC 
+VOID
+InitSnake(
+  VOID
+)
+{
+  UINT16    SpawnCellCoord;
+  UINTN     Index;
+
+  SpawnCellCoord = CELL_INDEX(CELLS_PER_AXIS / 2, CELLS_PER_AXIS / 2);
+  
+  for (Index = 0; Index < SNAKE_INITIAL_LENGTH; Index++) {
+    mGrid[SpawnCellCoord - Index] = 1;
+    mSnake.OccupiedCells[Index] = SpawnCellCoord - Index;
+  }
+
+  mSnake.Length = SNAKE_INITIAL_LENGTH;
+}
+
+STATIC
+BOOLEAN
+UpdateSnake(
+  DIRECTION_VECTOR Direction
+)
+{
+  INT32     Delta;
+  UINT16    Index;
+  UINT16    CellCoord;
+  INT32     OldCellCoord = -1;
+  UINT16    NewCellCoord;
+
+  switch (Direction) {
+    case RelativeLeft:
+      Delta = -1;
+      break;
+    case RelativeRight:
+      Delta = +1;
+      break;
+    case RelativeUp:
+      Delta = -CELLS_PER_AXIS;
+      break;
+    case RelativeDown:
+      Delta = CELLS_PER_AXIS;
+      break;
+    default:
+      // Would only happen IF we pass Undefined, which should NEVER happen.
+      ASSERT(Direction != Undefined);
+      return FALSE;
+  }
+
+  for (Index = 0; Index < mSnake.Length; Index++) {
+    CellCoord = mSnake.OccupiedCells[Index];
+
+    // We're updating the head!
+    if (OldCellCoord == -1) {
+      NewCellCoord = (CellCoord + Delta + GRID_CELL_COUNT) % GRID_CELL_COUNT;
+
+      if (IS_SNAKE_CELL(mGrid[NewCellCoord])) {
+        // We die!
+        return FALSE;
+      }
+
+      mGrid[CellCoord] = 0;
+      mGrid[NewCellCoord] = 1;
+      mSnake.OccupiedCells[Index] = NewCellCoord;
+    } else {
+      mGrid[CellCoord] = 0;
+      mGrid[OldCellCoord] = 1;
+      mSnake.OccupiedCells[Index] = OldCellCoord;
+    }
+
+    OldCellCoord = CellCoord;
+  }
+
+  return TRUE;
+}
+
+VOID
+RunGameLogic(
+  VOID
+)
+{
+  EFI_INPUT_KEY       Key;
+  DIRECTION_VECTOR    Direction = RelativeUp;
+  DIRECTION_VECTOR    RequestedDirection;
+
+  InitSnake();
+
+  while (TRUE) {
+    QueryLastKeystroke(&Key);
+    QueryLastKeystroke(&Key);
+    if (Key.ScanCode == SCAN_ESC) {
+      return;
+    }
+
+    RequestedDirection = TranslateKeyToDirection(&Key);
+    if (
+      RequestedDirection != Undefined &&
+      (
+        (Direction == RelativeLeft && RequestedDirection != RelativeRight) ||
+        (Direction == RelativeUp && RequestedDirection != RelativeDown) ||
+        (Direction == RelativeRight && RequestedDirection != RelativeLeft) ||
+        (Direction == RelativeDown && RequestedDirection != RelativeUp)
+      )
+    ) {
+
+      Direction = RequestedDirection;
+    }
+
+    if (!UpdateSnake(Direction)) {
+      Print(L"\nGame Over! You died!\nExiting in 4 seconds...\n");
+      gBS->Stall(4e6);
+      return;
+    }
+
+    DrawScene();
+    PresentBackbuffer();
+
+    Print(L"\n\nScore: %d\nDirection Vector: %s\n", mScore, TranslateDirectionToString(Direction));
+    if (mSnake.Length == GRID_CELL_COUNT) {
+      Print(L"Congratulations! You've won!\nFun fact: I, Alexis, have never beat this (for now!)\nExiting in 4 seconds...\n");
+      gBS->Stall(4e6);
+      return;
+    }
+
+    gBS->Stall(5e5);
+
+    mScore += 1;
+  }
+}

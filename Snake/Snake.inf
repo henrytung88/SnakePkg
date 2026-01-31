@@ -10,6 +10,8 @@
 [Sources]
   Assets/Logo.bmp
   Assets/Logo.idf
+  GameLogic.h
+  GameLogic.c
   Graphics.h
   Graphics.c
   Snake.c
