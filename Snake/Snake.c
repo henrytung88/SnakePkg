@@ -11,6 +11,7 @@
 #include <Library/UefiLib.h>
 #include <Library/DebugLib.h>
 #include <Library/UefiBootServicesTableLib.h>
+#include <Library/UefiRuntimeServicesTableLib.h>
 
 #include <Protocol/LoadedImage.h>
 #include <Protocol/HiiImage.h>
@@ -65,6 +66,9 @@ UefiMain(
     NULL
   );
   ASSERT_EFI_ERROR(Status);
+
+  gRT->ResetSystem(EfiResetWarm, EFI_SUCCESS, 0, NULL);
+  CpuDeadLoop();
 
   return Status;
 }

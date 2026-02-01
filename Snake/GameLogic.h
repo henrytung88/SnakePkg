@@ -1,8 +1,8 @@
 #ifndef __GAMELOGIC_H__
 #define __GAMELOGIC_H__
 
-#define CELLS_PER_AXIS            17
-#define CELL_PERCENTAGE_SCREEN_OCCUPANCY    2
+#define CELLS_PER_AXIS                      9
+#define CELL_PERCENTAGE_SCREEN_OCCUPANCY    3
 #define CELL_BORDER_SIZE                    2
 #define SNAKE_INITIAL_LENGTH                5
 
@@ -11,7 +11,8 @@
 #define CELL_X(Index)                       (Index % CELLS_PER_AXIS)
 #define CELL_Y(Index)                       (Index / CELLS_PER_AXIS)
 #define CELL_INDEX(X, Y)                    ((Y * CELLS_PER_AXIS) + X)
-#define IS_SNAKE_CELL(Cell)                 (Cell != 0)
+#define IS_SNAKE_CELL(Cell)                 (Cell == 1)
+#define IS_APPLE_CELL(Cell)                 (Cell == 2)
 
 typedef UINT16                              GRID_CELL;
 typedef GRID_CELL                           GRID_MATRIX[CELLS_PER_AXIS * CELLS_PER_AXIS];

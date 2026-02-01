@@ -32,5 +32,6 @@
   UefiLib
   DebugLib
   UefiBootServicesTableLib
+  UefiRuntimeServicesTableLib
   MemoryAllocationLib
   BaseMemoryLib

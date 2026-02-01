@@ -5,14 +5,28 @@
 #include <Library/DebugLib.h>
 #include <Library/UefiBootServicesTableLib.h>
 
-#include <Protocol/SimpleTextIn.h>
+#include <Protocol/Rng.h>
 
 #include "GameLogic.h"
 #include "Graphics.h"
 
-STATIC GRID_MATRIX    mGrid;
-STATIC SNAKE_STATE    mSnake;
-STATIC UINT32         mScore;
+STATIC UINT64             mRngState = 13371337;
+STATIC GRID_MATRIX        mGrid;
+STATIC SNAKE_STATE        mSnake;
+STATIC UINT32             mScore;
+
+UINT32
+XorShift32(
+  VOID
+)
+{
+	UINT64 x = mRngState;
+	x ^= x << 13;
+	x ^= x >> 7;
+	x ^= x << 17;
+	mRngState = x;
+	return (UINT32)x;
+}
 
 // NOTE: In this function, we return the last ARROW pressed! 
 STATIC
@@ -55,6 +69,34 @@ QueryLastKeystroke(
 
 STATIC
 VOID
+SpawnApple(
+  VOID
+)
+{
+  UINT16 EmptyCells[GRID_CELL_COUNT];
+  UINT16 EmptyCount = 0;
+  UINT16 Index;
+  UINT16 ChosenIndex;
+  UINT16 GridIndex;
+
+  for (Index = 0; Index < GRID_CELL_COUNT; Index++) {
+    if (mGrid[Index] == 0) {
+      EmptyCells[EmptyCount++] = Index;
+    }
+  }
+
+  if (EmptyCount == 0) {
+    return;
+  }
+
+  ChosenIndex = XorShift32() % EmptyCount;
+  GridIndex = EmptyCells[ChosenIndex];
+
+  mGrid[GridIndex] = 2;
+}
+
+STATIC
+VOID
 DrawGrid(
   VOID
 )
@@ -93,17 +135,24 @@ DrawGrid(
   }
 
   for (Index = 0; Index < GRID_CELL_COUNT; Index++) {
-    if (!IS_SNAKE_CELL(mGrid[Index])) {
-      continue;
+    if (IS_SNAKE_CELL(mGrid[Index])) {
+      DrawRectangleToBackbuffer(
+        11, 125, 0,
+        CellDisplaySize - CELL_BORDER_SIZE,
+        CellDisplaySize - CELL_BORDER_SIZE,
+        GridDrawStartAreaX + CELL_BORDER_SIZE + (CellDisplaySize * CELL_X(Index)),
+        GridDrawStartAreaY + CELL_BORDER_SIZE + (CellDisplaySize * CELL_Y(Index))
+      );
     }
-
-    DrawRectangleToBackbuffer(
-      11, 125, 0,
-      CellDisplaySize - CELL_BORDER_SIZE,
-      CellDisplaySize - CELL_BORDER_SIZE,
-      GridDrawStartAreaX + CELL_BORDER_SIZE + (CellDisplaySize * CELL_X(Index)),
-      GridDrawStartAreaY + CELL_BORDER_SIZE + (CellDisplaySize * CELL_Y(Index))
-    );
+    else if (IS_APPLE_CELL(mGrid[Index])) {
+      DrawRectangleToBackbuffer(
+        255, 0, 0,
+        CellDisplaySize - CELL_BORDER_SIZE,
+        CellDisplaySize - CELL_BORDER_SIZE,
+        GridDrawStartAreaX + CELL_BORDER_SIZE + (CellDisplaySize * CELL_X(Index)),
+        GridDrawStartAreaY + CELL_BORDER_SIZE + (CellDisplaySize * CELL_Y(Index))
+      );
+    }
   }
 
   // Highlight the snake's head
@@ -117,7 +166,7 @@ DrawGrid(
 
   // And the snake's tail
   DrawRectangleToBackbuffer(
-    168, 8, 0,
+    108, 8, 0,
     CellDisplaySize - CELL_BORDER_SIZE,
     CellDisplaySize - CELL_BORDER_SIZE,
     GridDrawStartAreaX + CELL_BORDER_SIZE + (CellDisplaySize * CELL_X(mSnake.OccupiedCells[mSnake.Length - 1])),
@@ -192,17 +241,17 @@ TranslateDirectionToString(
   }
 }
 
-STATIC 
+STATIC
 VOID
 InitSnake(
   VOID
 )
 {
-  UINT16    SpawnCellCoord;
-  UINTN     Index;
+  UINT16        SpawnCellCoord;
+  UINTN         Index;
 
   SpawnCellCoord = CELL_INDEX(CELLS_PER_AXIS / 2, CELLS_PER_AXIS / 2);
-  
+
   for (Index = 0; Index < SNAKE_INITIAL_LENGTH; Index++) {
     mGrid[SpawnCellCoord - Index] = 1;
     mSnake.OccupiedCells[Index] = SpawnCellCoord - Index;
@@ -218,10 +267,11 @@ UpdateSnake(
 )
 {
   INT32     Delta;
-  UINT16    Index;
-  UINT16    CellCoord;
-  INT32     OldCellCoord = -1;
-  UINT16    NewCellCoord;
+  UINT16    NewHeadCell;
+  UINT16    OldHeadCell;
+  UINT16    OldTailCell;
+  UINTN     Index;
+  BOOLEAN   AteApple;
 
   switch (Direction) {
     case RelativeLeft:
@@ -237,34 +287,46 @@ UpdateSnake(
       Delta = CELLS_PER_AXIS;
       break;
     default:
-      // Would only happen IF we pass Undefined, which should NEVER happen.
+      // Would only happen if we pass Undefined, which should NEVER happen.
       ASSERT(Direction != Undefined);
       return FALSE;
   }
 
-  for (Index = 0; Index < mSnake.Length; Index++) {
-    CellCoord = mSnake.OccupiedCells[Index];
+  OldHeadCell = mSnake.OccupiedCells[0];
+  NewHeadCell = (OldHeadCell + Delta + GRID_CELL_COUNT) % GRID_CELL_COUNT;
+  AteApple = IS_APPLE_CELL(mGrid[NewHeadCell]);
 
-    // We're updating the head!
-    if (OldCellCoord == -1) {
-      NewCellCoord = (CellCoord + Delta + GRID_CELL_COUNT) % GRID_CELL_COUNT;
+  if (!AteApple) {
+    OldTailCell = mSnake.OccupiedCells[mSnake.Length - 1];
+    mGrid[OldTailCell] = 0;
+  }
 
-      if (IS_SNAKE_CELL(mGrid[NewCellCoord])) {
-        // We die!
-        return FALSE;
-      }
+  if (IS_SNAKE_CELL(mGrid[NewHeadCell])) {
+    if (!AteApple) {
+      mGrid[OldTailCell] = 1;
+    }
+    return FALSE;
+  }
 
-      mGrid[CellCoord] = 0;
-      mGrid[NewCellCoord] = 1;
-      mSnake.OccupiedCells[Index] = NewCellCoord;
-    } else {
-      mGrid[CellCoord] = 0;
-      mGrid[OldCellCoord] = 1;
-      mSnake.OccupiedCells[Index] = OldCellCoord;
+  // If we ate an apple, then grow the snake
+  if (AteApple) {
+    for (Index = mSnake.Length; Index > 0; Index--) {
+      mSnake.OccupiedCells[Index] = mSnake.OccupiedCells[Index - 1];
     }
 
-    OldCellCoord = CellCoord;
+    mSnake.Length++;
+    mScore += 100;
+
+    SpawnApple();
   }
+  else {
+    for (Index = mSnake.Length - 1; Index > 0; Index--) {
+      mSnake.OccupiedCells[Index] = mSnake.OccupiedCells[Index - 1];
+    }
+  }
+
+  mSnake.OccupiedCells[0] = NewHeadCell;
+  mGrid[NewHeadCell] = 1; // Mark as snake cell
 
   return TRUE;
 }
@@ -279,6 +341,7 @@ RunGameLogic(
   DIRECTION_VECTOR    RequestedDirection;
 
   InitSnake();
+  SpawnApple();
 
   while (TRUE) {
     QueryLastKeystroke(&Key);
@@ -318,7 +381,5 @@ RunGameLogic(
     }
 
     gBS->Stall(5e5);
-
-    mScore += 1;
   }
 }
