@@ -53,11 +53,10 @@ git clone https://github.com/AstonishedLiker/SnakePkg.git
 
 ```bash
 cd SnakePkg
-chmod +x run.sh build.sh
 cd ./Scripts
+chmod +x run.sh snake_build.sh
 
 # Examples
-./run.sh DEBUG X64
 ./run.sh RELEASE X64
 ```
 
@@ -66,13 +65,14 @@ cd ./Scripts
 ```bash
 # Just compile without launching QEMU
 cd ./Scripts
-./build.sh DEBUG X64
+./build.sh RELEASE X64
+./build.sh RELEASE IA32
 ```
 
 The compiled `.efi` file will be located at:
 
 ```
-Build/SnakePkg/DEBUG_GCC/X64/Snake.efi
+Build/SnakePkg/DEBUG_GCC5/X64/Snake.efi
 ```
 
 ### 4. Debugging
