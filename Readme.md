@@ -39,7 +39,29 @@ You'll need a working EDK2 build environment. Follow the steps below.
 
 ## Usage
 
-### 1. Clone and Setup
+### 1. Running it on real hardware
+
+#### Prerequisites
+
+- A UEFI-compliant device, with a USB port
+- A FAT32-formatted USB storage device (thumbstick, disk, ...)
+
+---
+
+#### Steps
+
+1. Download the latest `SnakeX64.efi`/`SnakeIA32.efi` (depending on your CPU architecture) from the [Releases Tab](https://github.com/AstonishedLiker/SnakePkg/releases)
+2. Rename `SnakeX64.efi`/`SnakeIA32.efi` to `BOOTX64.EFI`/`BOOTIA32.EFI` (again, depending if your CPU is 32-bit or 64-bit)
+3. Create a folder named `EFI` at the root of your FAT32-formatted USB storage device
+4. Inside that newly-created folder, create another folder named `BOOT`
+5. Move the `BOOTX64.EFI`/`BOOTIA32.EFI` to the `BOOT` folder
+    - The file should be at `USB Storage Device/EFI/BOOT/BOOTX64.EFI` or `USB Storage Device/EFI/BOOT/BOOTIA32.EFI`
+6. Reboot your PC, then mash the `F12` key to go to the boot menu
+7. Select your USB storage device from the list, and enjoy!
+
+**NOTE:** If it doesn't work, please open an issue and list your PC/Motherboard model, along with its BIOS version. Thanks!
+
+### 2. Clone and Setup
 
 ```bash
 git clone https://github.com/tianocore/edk2.git
@@ -49,7 +71,7 @@ git submodule update --init # cf. https://github.com/tianocore/edk2/tree/master?
 git clone https://github.com/AstonishedLiker/SnakePkg.git
 ```
 
-### 2. Build and Run
+### 3. Build and Run (In QEMU)
 
 ```bash
 cd SnakePkg
@@ -60,7 +82,7 @@ chmod +x run.sh snake_build.sh
 ./run.sh RELEASE X64
 ```
 
-### 3. Build Only (No VM)
+### 4. Build Only (No VM)
 
 ```bash
 # Just compile without launching QEMU
@@ -75,7 +97,7 @@ The compiled `.efi` file will be located at:
 Build/SnakePkg/DEBUG_GCC5/X64/Snake.efi
 ```
 
-### 4. Debugging
+### 5. Debugging
 
 #### With the command-line
 
