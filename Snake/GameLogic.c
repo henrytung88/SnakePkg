@@ -8,22 +8,22 @@
 #include "GameLogic.h"
 #include "Graphics.h"
 
-STATIC UINT64             mRngState = 13371337; // I don't want to make it random per launch
-STATIC GRID_MATRIX        mGrid;
-STATIC SNAKE_STATE        mSnake;
-STATIC UINT32             mScore;
+STATIC UINT32         mRngState = 13371337; // I don't want to make it random per launch
+STATIC GRID_MATRIX    mGrid;
+STATIC SNAKE_STATE    mSnake;
+STATIC UINT32         mScore;
 
 UINT32
 XorShift32(
   VOID
 )
 {
-	UINT64 x = mRngState;
-	x ^= x << 13;
-	x ^= x >> 7;
-	x ^= x << 17;
-	mRngState = x;
-	return (UINT32)x;
+  UINT32 x = mRngState;
+  x ^= x << 13;
+  x ^= x >> 7;
+  x ^= x << 17;
+  mRngState = x;
+  return (UINT32)x;
 }
 
 // NOTE: In this function, we return the last ARROW pressed! 
@@ -335,11 +335,14 @@ RunGameLogic(
 )
 {
   EFI_INPUT_KEY       Key;
-  DIRECTION_VECTOR    Direction = RelativeRight;
+  DIRECTION_VECTOR    Direction             = RelativeRight;
   DIRECTION_VECTOR    RequestedDirection;
+  UINTN               DifficultyMultiplier                 = 0;
 
   InitSnake();
   SpawnApple();
+
+  //mScore = GRID_CELL_COUNT * 100;
 
   while (TRUE) {
     QueryLastKeystroke(&Key);
@@ -376,6 +379,9 @@ RunGameLogic(
       return;
     }
 
-    gBS->Stall(5e5);
+    DifficultyMultiplier = (UINT32)(mScore / 100) * 2e4;
+    DifficultyMultiplier = DifficultyMultiplier > 3e5 ? 4e5 : DifficultyMultiplier;
+
+    gBS->Stall(5e5 - DifficultyMultiplier);
   }
 }
