@@ -5,8 +5,6 @@
 #include <Library/DebugLib.h>
 #include <Library/UefiBootServicesTableLib.h>
 
-#include <Protocol/Rng.h>
-
 #include "GameLogic.h"
 #include "Graphics.h"
 
